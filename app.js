@@ -33,24 +33,34 @@ Direction.belongsTo(Recipe,{
 app.post('/api/reviews/:recipeId', function(request, response){
     let RecipeId = parseInt(request.params.recipeId);
 
-    Review.create({
-        RecipeId: RecipeId,
-        UserId: request.body.userId,
-        Title: request.body.title,
-        Rating: request.body.rating,
-        Body: request.body.body
-    }).then((review) => {
-        response.json(review);
-    }, (validation)=>{
-        response.status(422).json({
-            errors: validation.errors.map((error) => {
-                return {
-                    attribute: error.path,
-                    message: error.message
-                }
-            })
-        });
-    });
+    Recipe
+    .findByPk(RecipeId)
+    .then((recipe)=>{
+        if (recipe){
+            Review.create({
+                RecipeId: RecipeId,
+                UserId: request.body.userId,
+                Title: request.body.title,
+                Rating: request.body.rating,
+                Body: request.body.message
+            }).then((review) => {
+                response.status(200).json(review);
+            }, (validation)=>{
+                response.status(422).json({
+                    errors: validation.errors.map((error) => {
+                        return {
+                            attribute: error.path,
+                            message: error.message
+                        }
+                    })
+                });
+            });
+        }else{
+            response.status(404).send();
+        }
+    })
+
+
 });
 
 //Update old review
@@ -65,7 +75,7 @@ app.patch('/api/reviews/:reviewId', function(request, response){
     if (request.body.rating){
         updateParams["Rating"] = request.body.rating;
     }
-    if (request.body.body){
+    if (request.body.message){
         updateParams["Body"] = request.body.body;
     }
 
@@ -76,7 +86,7 @@ app.patch('/api/reviews/:reviewId', function(request, response){
     }).then(function() {
         Review.findByPk(reviewId).then((review) => {
             if (review){
-                response.json(review);
+                response.status(200).json(review);
             }else{
                 response.status(404).send();
             }
@@ -119,7 +129,7 @@ app.get('/api/recipes/foodType/:foodType', function(request, response){
             }
         }
     };
-    
+
     Recipe.findAll({
         where: {
             FoodType: {
@@ -147,6 +157,7 @@ app.delete('/api/recipes/:recipeId', function(request, response){
         if (recipe){
             await Ingredient.destroy({where:{RecipeId:recipe.id}});
             await Direction.destroy({where:{RecipeId:recipe.id}});
+            await Review.destroy({where:{RecipeId:recipe.id}});
             await recipe.destroy();
         }else{
             return Promise.reject();
