@@ -64,7 +64,7 @@ module.exports = sequelize.define('review', {
         validate: {
             notEmpty:{
                 msg:"Review Body is required"
-            },
+            }
         }
     },
 },{
