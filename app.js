@@ -76,7 +76,7 @@ app.patch('/api/reviews/:reviewId', function(request, response){
         updateParams["Rating"] = request.body.rating;
     }
     if (request.body.message){
-        updateParams["Body"] = request.body.body;
+        updateParams["Body"] = request.body.message;
     }
 
     Review.update(updateParams,{
